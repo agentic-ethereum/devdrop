@@ -23,3 +23,11 @@ Install requirements.txt
 ```bash
 pip install -r requirements.txt 
 ``` 
+Copy environment Variables
+
+```bash 
+cp .env.example .env
+```
+
+Make sure you have your X api keys setup well with **Read and Write Permission** and update your env file with all of it.
+
