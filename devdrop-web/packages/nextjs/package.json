@@ -16,6 +16,7 @@
   },
   "dependencies": {
     "@heroicons/react": "~2.1.5",
+    "@octokit/rest": "^21.1.0",
     "@rainbow-me/rainbowkit": "2.1.6",
     "@tanstack/react-query": "~5.59.15",
     "@uniswap/sdk-core": "~5.8.2",
@@ -24,6 +25,7 @@
     "burner-connector": "0.0.9",
     "daisyui": "4.12.10",
     "next": "~14.2.11",
+    "next-auth": "beta",
     "next-nprogress-bar": "~2.3.13",
     "next-themes": "~0.3.0",
     "qrcode.react": "~4.0.1",
