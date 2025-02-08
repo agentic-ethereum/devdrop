@@ -9,6 +9,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         token.id = user.id;
       }
       if (account && account.access_token) {
+        console.log(account.access_token);
         token.accessToken = account.access_token;
       }
       return token;
