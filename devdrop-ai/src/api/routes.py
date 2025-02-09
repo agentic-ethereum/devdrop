@@ -1,7 +1,12 @@
 from fastapi import APIRouter, HTTPException
-from typing import Dict, Any
+from typing import Dict, Any, List
 from .schemas import ChatRequest, ChatResponse
-from .service import process_chat, evaluate_contributor, evaluate_all_contributors
+from .service import (
+    process_chat, 
+    evaluate_contributor, 
+    evaluate_all_contributors,
+    get_token_distribution  
+)
 
 router = APIRouter(tags=['AgentQuery'])
 
@@ -44,6 +49,25 @@ async def evaluate_all_contributors_endpoint():
         result = await evaluate_all_contributors()
         if "error" in result:
             raise HTTPException(status_code=500, detail=result["error"])
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/token-distribution/{repo_name}", response_model=List[Dict[str, Any]])
+async def get_token_distribution_endpoint(repo_name: str):
+    """
+    Get the token distribution for all contributors in a repository
+    
+    Args:
+        repo_name: Name of the GitHub repository
+    
+    Returns:
+        List of dictionaries containing contributor details and token allocation
+    """
+    try:
+        result = await get_token_distribution(repo_name)
+        if "error" in result:
+            raise HTTPException(status_code=404, detail=result["error"])
         return result
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
