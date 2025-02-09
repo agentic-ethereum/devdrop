@@ -4,6 +4,7 @@ import { useState } from "react";
 import ChatInput from "~~/components/chat/chat-input";
 import ChatMessages from "~~/components/chat/chat-message";
 import OutputArea from "~~/components/chat/output-area";
+import { useChat } from "~~/lib/chat";
 
 export interface Message {
   id: string;
@@ -14,9 +15,10 @@ export interface Message {
 export default function ChatPage() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const chatMutation = useChat();
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!input.trim()) return;
 
@@ -28,33 +30,38 @@ export default function ChatPage() {
 
     setMessages(prev => [...prev, userMessage]);
     setInput("");
-    setIsLoading(true);
 
-    // Simulate AI response
-    setTimeout(() => {
+    console.log(input);
+
+    try {
+      const response = await chatMutation.mutateAsync(input);
       const aiMessage: Message = {
         id: (Date.now() + 1).toString(),
-        content: `This is a simulated response to: "${input}"`,
+        content: response.content || response,
         role: "assistant",
       };
       setMessages(prev => [...prev, aiMessage]);
-      setIsLoading(false);
-    }, 1000);
+    } catch (error) {
+      console.error("Chat error:", error);
+      const errorMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        content: "Sorry, there was an error processing your request.",
+        role: "assistant",
+      };
+      setMessages(prev => [...prev, errorMessage]);
+    }
   };
 
   return (
-    <div className="grid grid-cols-2 h-screen">
-      {/* Chat Interface - Left Column */}
+    <div className="grid grid-cols-2 h-screen-nav">
       <div className="flex flex-col border-r">
         <div className="flex-1 overflow-auto p-4">
-          <ChatMessages messages={messages} isLoading={isLoading} />
+          <ChatMessages messages={messages} isLoading={chatMutation.isPending} />
         </div>
         <div className="border-t bg-base-200 p-4">
-          <ChatInput input={input} setInput={setInput} handleSubmit={handleSubmit} isLoading={isLoading} />
+          <ChatInput input={input} setInput={setInput} handleSubmit={handleSubmit} isLoading={chatMutation.isPending} />
         </div>
       </div>
-
-      {/* Output Area - Right Column */}
       <div className="bg-base-200">
         <OutputArea messages={messages} />
       </div>
