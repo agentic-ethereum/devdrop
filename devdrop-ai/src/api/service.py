@@ -3,7 +3,7 @@ import os
 from langchain_groq import ChatGroq
 import json
 import asyncio
-from typing import Dict, Any
+from typing import Dict, Any, List
 from dotenv import load_dotenv
 from langgraph.prebuilt import create_react_agent
 from langgraph.checkpoint.memory import MemorySaver
@@ -201,3 +201,53 @@ def _generate_eval_prompt(repo_name: str, username: str, data: Dict) -> str:
     }}
     ```
     """
+
+async def get_token_distribution(repo_name: str) -> List[Dict[str, Any]]:
+    """
+    Calculate token distribution for all contributors based on their reward points
+    """
+    try:
+        # Get total tokens from repo_airdrops table
+        with db.get_connection() as conn:
+            with conn.cursor() as cur:
+                cur.execute("""
+                    SELECT total_tokens 
+                    FROM repo_airdrops 
+                    WHERE repo_name = %s
+                """, (repo_name,))
+                result = cur.fetchone()
+                if not result:
+                    return {"error": f"No airdrop found for repository {repo_name}"}
+                total_tokens = result[0]
+
+                # Get all contributors and their reward points
+                cur.execute("""
+                    SELECT contributor, reward_points, justification 
+                    FROM contribution_evaluations 
+                    WHERE repo_name = %s
+                """, (repo_name,))
+                evaluations = cur.fetchall()
+                
+                if not evaluations:
+                    return {"error": "No evaluated contributors found"}
+
+                # Calculate total reward points
+                total_reward_points = sum(eval[1] for eval in evaluations)
+
+                # Calculate token distribution
+                distributions = []
+                for eval in evaluations:
+                    contributor, reward_points, justification = eval
+                    tokens = (reward_points * total_tokens) / total_reward_points
+                    
+                    distributions.append({
+                        "contributor": contributor,
+                        "reward_points": float(reward_points),
+                        "tokens_awarded": round(float(tokens), 2),
+                        "justification": justification
+                    })
+
+                return distributions
+
+    except Exception as e:
+        return {"error": f"Error calculating token distribution: {str(e)}"}

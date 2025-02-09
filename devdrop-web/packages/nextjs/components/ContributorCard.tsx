@@ -1,4 +1,5 @@
 import { Contributor } from "../types/github";
+import DisperseButton from "./DisperseButton";
 import { Session } from "next-auth";
 import { useFetchEvaluation } from "~~/github";
 
@@ -95,6 +96,8 @@ export const ContributorCard = ({ contributor, session, repoFullName }: Contribu
             </div>
           </div>
         )}
+
+        <DisperseButton />
       </div>
     </div>
   );

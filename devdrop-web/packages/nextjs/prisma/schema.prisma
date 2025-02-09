@@ -13,6 +13,12 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model tokenAddress {
+  id                Int      @id @default(autoincrement())
+  tokenAddress      String   @unique
+  tokenClaimAddress String   @unique
+  createdAt         DateTime @default(now())
+}
 model User {
   id                 String   @id @default(cuid())
   walletAddress      String   @unique
