@@ -57,7 +57,7 @@ class DatabaseOperations:
                         true
                     )
                     WHERE contributor = %s AND repo_name = %s
-                """, (  # Removed trailing comma and fixed WHERE clause alignment
+                """, (
                     Json(commits),
                     username,
                     repo_name

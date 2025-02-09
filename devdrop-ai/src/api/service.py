@@ -9,6 +9,7 @@ from langgraph.prebuilt import create_react_agent
 from langgraph.checkpoint.memory import MemorySaver
 from ..tools.github_tool import GitHubTool
 from ..tools.twitter_tool import twitter_toolkit
+from ..tools.airdrop_info_tool import AirdropStoreTool
 from .schemas import ChatRequest, ChatResponse, Message
 from .db import DatabaseOperations
 # Load environment variables
@@ -21,8 +22,9 @@ if not os.getenv("GROQ_API_KEY"):
 model = ChatGroq(model='llama3-70b-8192', api_key=os.getenv("GROQ_API_KEY"))
 twitter_tools = twitter_toolkit.get_tools()
 github_tool = GitHubTool()
-tools = [github_tool] + twitter_tools
 db = DatabaseOperations(os.getenv("DB_URL"))
+airdrop_store = AirdropStoreTool(db)
+tools = [github_tool] + twitter_tools + [airdrop_store]
 # Set up a memory checkpointer
 memory = MemorySaver()
 
