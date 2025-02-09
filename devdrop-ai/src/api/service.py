@@ -2,6 +2,7 @@
 import os
 from langchain_groq import ChatGroq
 import json
+import asyncio
 from typing import Dict, Any
 from dotenv import load_dotenv
 from langgraph.prebuilt import create_react_agent
@@ -86,6 +87,70 @@ async def evaluate_contributor(repo_name: str, username: str) -> Dict[str, Any]:
             }
         except Exception as e:
             return {"error": f"Evaluation failed: {str(e)}"}
+
+
+async def evaluate_all_contributors() -> Dict[str, Any]:
+    """Evaluate all contributors in the database with exponential backoff retry logic"""
+    try:
+        # Get all unique contributor-repo pairs from database
+        with db.get_connection() as conn:
+            with conn.cursor() as cur:
+                cur.execute("""
+                    SELECT DISTINCT repo_name, contributor 
+                    FROM contributor_data 
+                    WHERE NOT EXISTS (
+                        SELECT 1 
+                        FROM contribution_evaluations ce 
+                        WHERE ce.repo_name = contributor_data.repo_name 
+                        AND ce.contributor = contributor_data.contributor
+                    )
+                """)
+                pairs = cur.fetchall()
+
+        total = len(pairs)
+        processed = 0
+        failed = []
+        max_retries = 3
+        base_delay = 2  # Base delay in seconds
+
+        for repo_name, username in pairs:
+            retries = 0
+            while retries <= max_retries:
+                try:
+                    result = await evaluate_contributor(repo_name, username)
+                    if "error" in result:
+                        if "rate limit" in result["error"].lower():
+                            # Calculate exponential backoff delay
+                            delay = base_delay * (2 ** retries)
+                            if retries < max_retries:
+                                await asyncio.sleep(delay)
+                                retries += 1
+                                continue
+                        # Non-rate limit error or max retries reached
+                        failed.append({"repo": repo_name, "user": username, "error": result["error"]})
+                    break  # Success or non-retryable error
+                except Exception as e:
+                    if retries < max_retries:
+                        # Calculate exponential backoff delay
+                        delay = base_delay * (2 ** retries)
+                        await asyncio.sleep(delay)
+                        retries += 1
+                    else:
+                        failed.append({"repo": repo_name, "user": username, "error": str(e)})
+                        break
+            processed += 1
+
+        return {
+            "status": "completed",
+            "total_contributors": total,
+            "processed": processed,
+            "failed": failed
+        }
+    except Exception as e:
+        return {"status":"failed",
+        "processed":processed,
+        "failed":failed,
+        "error": f"Batch evaluation failed: {str(e)}"}
 
 
 def _generate_eval_prompt(repo_name: str, username: str, data: Dict) -> str:
