@@ -21,3 +21,32 @@ model User {
   createdAt          DateTime @default(now())
   updatedAt          DateTime @updatedAt
 }
+
+model ContributorData {
+  contributor   String
+  repoName      String
+  contributions Json
+  email         String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@id([contributor, repoName]) // Composite primary key
+}
+
+model ContributionEvaluations {
+  contributor   String
+  repoName      String
+  rewardPoints  Decimal  @db.Decimal(20, 6)
+  justification String
+  evaluatedAt   DateTime @default(now())
+
+  @@id([contributor, repoName]) // Composite primary key
+}
+
+model RepoAirdrops {
+  repoName    String   @id
+  airdropDate DateTime
+  totalTokens BigInt
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}

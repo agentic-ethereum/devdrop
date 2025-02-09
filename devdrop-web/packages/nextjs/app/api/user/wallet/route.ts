@@ -2,6 +2,7 @@ import { auth } from "~~/auth";
 import Prisma from "~~/lib/prisma/prisma";
 
 export async function POST(request: Request) {
+  
   const session = await auth();
   if (!session?.user?.id) {
     return Response.json({ error: "Unauthorized" }, { status: 401 });
