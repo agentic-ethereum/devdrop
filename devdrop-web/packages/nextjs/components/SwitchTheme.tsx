@@ -8,14 +8,14 @@ export const SwitchTheme = ({ className }: { className?: string }) => {
   const { setTheme, resolvedTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
 
-  const isDarkMode = resolvedTheme === "synthwave";
+  const isDarkMode = resolvedTheme === "dark";
 
   const handleToggle = () => {
     if (isDarkMode) {
-      setTheme("cupcake");
+      setTheme("light");
       return;
     }
-    setTheme("synthwave");
+    setTheme("dark");
   };
 
   useEffect(() => {

@@ -37,7 +37,10 @@ const Home: NextPage = () => {
               <Address address={connectedAddress} />
             </div>
             <p className="my-2 font-medium text-center">Please sign in to continue</p>
-            <button className="btn btn-primary mt-6 w-full sm:w-auto sm:mx-auto" onClick={() => signIn("github")}>
+            <button
+              className="btn btn-primary mt-6 w-full sm:w-auto sm:mx-auto"
+              onClick={() => signIn("github", { callbackUrl: "/" }, { walletAddress: connectedAddress })}
+            >
               Sign in with GitHub
             </button>
           </div>
